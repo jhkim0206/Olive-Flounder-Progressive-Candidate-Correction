@@ -1,0 +1,79 @@
+kind: canonical_baseline
+
+experiment:
+  name: segformer_b0_rgb
+  display_name: Direct SegFormer-B0
+
+dataset:
+  image_size: [384, 384]
+  train_images: 1169
+  train_fish: 640
+  validation_images: 292
+  validation_fish: 160
+  semantic_classes: 9
+
+model:
+  architecture: segformer
+  pretrained_identifier: nvidia/mit-b0
+  pretrained_encoder: true
+  input: rgb
+  input_channels: 3
+  parameter_count: 3716457
+  semantic_loss_ignore_index: 255
+
+training:
+  seed: 45
+  epochs: 120
+  batch_size: 8
+  evaluation_batch_size: 8
+  workers: 2
+  deterministic: true
+  automatic_mixed_precision: true
+  gradient_clip_norm: 1.0
+  optimizer:
+    type: AdamW
+    weight_decay: 0.0001
+    parameter_groups:
+      - {name: encoder, name_prefix: "segformer.", learning_rate: 0.00006}
+      - {name: decode_head, name_prefix: "not segformer.", learning_rate: 0.0006}
+  scheduler:
+    type: warmup_cosine
+    warmup_epochs: 3
+    minimum_learning_rate_ratio: 0.1
+  checkpoint:
+    file_name: last.pt
+    training_endpoint_epoch: 120
+    selection: final_epoch
+
+loss:
+  type: weighted_cross_entropy_plus_foreground_dice
+  dice_coefficient: 0.5
+  dice_classes: foreground_only
+  class_weights:
+    rule: inverse_square_root_pixel_frequency
+    normalize_by: mean
+    epsilon: 1.0e-8
+    background_multiplier: 0.25
+
+preprocessing:
+  normalization:
+    mean: [0.485, 0.456, 0.406]
+    std: [0.229, 0.224, 0.225]
+  train_augmentation:
+    horizontal_flip_probability: 0.5
+    affine:
+      probability: 0.75
+      shift_limit: 0.03
+      scale_limit: 0.0
+      rotate_limit_degrees: 15
+      border_mode: reflect_101
+    color_jitter:
+      probability: 0.5
+      brightness: 0.12
+      contrast: 0.10
+      saturation: 0.10
+      hue: 0.03
+    random_brightness_contrast:
+      probability: 0.3
+      brightness_limit: 0.08
+      contrast_limit: 0.08

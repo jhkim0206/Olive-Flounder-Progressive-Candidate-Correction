@@ -1,0 +1,7 @@
+extends: ../progressive_candidate_correction.yaml
+
+experiment:
+  run_name: signed_correction
+model:
+  candidate_correction:
+    variant: signed

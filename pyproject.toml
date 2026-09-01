@@ -1,0 +1,82 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "progressive-candidate-correction"
+version = "0.1.0"
+description = "Progressive Candidate Correction for visible disease symptoms in olive flounder"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {file = "LICENSE"}
+authors = [
+  {name = "Ju-Hyun Kim"},
+  {name = "Kyung-Won Cho"},
+  {name = "Chil-Woo Lee"},
+  {name = "Han-Suk Choi"},
+]
+keywords = ["olive flounder", "computer vision", "candidate correction", "semantic segmentation"]
+classifiers = [
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+  "numpy>=1.24,<3",
+  "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+train = [
+  "torch>=2.1",
+  "timm>=0.9.16",
+]
+data = [
+  "albumentations>=1.4,<3",
+  "opencv-python-headless>=4.8",
+  "Pillow>=10",
+  "pycocotools>=2.0.7",
+]
+baselines = [
+  "transformers>=4.40,<5",
+]
+report = [
+  "matplotlib>=3.7",
+  "pandas>=2.0",
+  "scipy>=1.10",
+  "tqdm>=4.65",
+]
+dev = [
+  "pytest>=8",
+  "ruff>=0.8",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+testpaths = ["tests"]
+pythonpath = ["src"]
+markers = [
+  "torch: requires PyTorch",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["E501"]
+
+[tool.coverage.run]
+branch = true
+source = ["progressive_candidate_correction"]

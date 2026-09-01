@@ -1,0 +1,38 @@
+kind: candidate_evaluation
+
+protocol:
+  calibration_split: train
+  validation_split: val
+  calibration_unit: matching_class_rasterized_annotation_component
+  component_connectivity: 8
+  minimum_component_area: 1
+  component_coverage_requirement: 0.50
+  target_train_symptom_region_capture_rate: 0.70
+  threshold_rule: highest_threshold_reaching_target
+  threshold_scope: per_candidate_response_and_class
+  freeze_before_validation: true
+  validation_retuning: false
+  validation_annotations: all_annotated_symptom_regions
+
+reporting:
+  component_coverage_thresholds: [0.50, 0.30]
+  primary_component_coverage: 0.50
+
+candidate_location_metrics:
+  annotation_exclusion: union_of_all_annotated_symptom_pixels
+  class_overlap_for_allowed_part_agreement: count_per_class
+  class_overlap_for_outside_annotation_candidate_area_ratio: count_once_after_union
+  allowed_part_agreement:
+    include_outside_fish_region_for_allowed_part_agreement: false
+  outside_annotation_candidate_area_ratio:
+    numerator: outside_annotation_candidate_union_within_fish_region
+    denominator: fish_region_pixels
+allowed_parts:
+  1: [1]
+  2: [4]
+  3: [2]
+  4: [2]
+  5: [1, 2]
+  6: [3]
+  7: [3]
+  8: [1, 3]

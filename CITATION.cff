@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+message: "If you use this code, please cite the accompanying manuscript."
+title: "Olive Flounder Progressive Candidate Correction"
+type: software
+version: 0.1.0
+date-released: 2026-08-31
+authors:
+  - family-names: Kim
+    given-names: Ju-Hyun
+  - family-names: Cho
+    given-names: Kyung-Won
+  - family-names: Lee
+    given-names: Chil-Woo
+  - family-names: Choi
+    given-names: Han-Suk
+repository-code: "https://github.com/jhkim0206/Olive-Flounder-Progressive-Candidate-Correction"
+preferred-citation:
+  type: article
+  title: "Recognition of Visible Disease Symptoms in Paralichthys olivaceus Using Progressive Candidate Correction"
+  year: 2026
+  authors:
+    - family-names: Kim
+      given-names: Ju-Hyun
+    - family-names: Cho
+      given-names: Kyung-Won
+    - family-names: Lee
+      given-names: Chil-Woo
+    - family-names: Choi
+      given-names: Han-Suk

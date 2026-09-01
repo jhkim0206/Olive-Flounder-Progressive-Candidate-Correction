@@ -1,0 +1,265 @@
+experiment:
+  seed: 45
+  epochs: 120
+  run_name: progressive_candidate_correction
+  output_root: outputs
+
+data:
+  provider: olive_flounder_coco
+  root: null
+  image_size: [384, 384]
+  num_workers: 2
+  class_names:
+    - background
+    - body_lesion
+    - mouth_ulcer
+    - fin_deformity
+    - fin_necrosis
+    - fin_base_necrosis
+    - caudal_deformity
+    - caudal_necrosis
+    - caudal_base_necrosis
+  part_names: [background, body, fin, caudal_fin, mouth]
+  normalization:
+    mean: [0.485, 0.456, 0.406]
+    std: [0.229, 0.224, 0.225]
+  augmentation:
+    horizontal_flip_probability: 0.50
+    shift_limit: 0.03
+    rotate_limit_degrees: 15
+    affine_probability: 0.75
+    color_jitter:
+      brightness: 0.12
+      contrast: 0.10
+      saturation: 0.10
+      hue: 0.03
+      probability: 0.50
+    brightness_contrast:
+      brightness_limit: 0.08
+      contrast_limit: 0.08
+      probability: 0.30
+  dummy:
+    num_samples: 8
+    batch_size: 2
+    deterministic_seed: 45
+
+model:
+  name: progressive_candidate_correction
+  num_classes: 9
+  num_parts: 5
+  backbone:
+    name: repvit_m1_1.dist_450e_in1k
+    pretrained: true
+    input_channels: 3
+    output_indices: [0, 1, 2, 3]
+  decoder_channels: 96
+  head_channels: 64
+  visual_evidence:
+    detach_during_stages: [3, 4, 5, 6]
+  candidate_correction:
+    variant: full
+  route_wise_composition:
+    enabled: true
+    strength: 0.90
+    candidate_retention_weight: 0.12
+    overwrite_strength: 0.90
+  final_refinement:
+    enabled: true
+    strength: 0.35
+
+loss:
+  class_weighting:
+    enabled: true
+    exponent: 0.50
+    background_scale: 0.25
+  part_structure:
+    fish_region: 0.80
+    fish_region_dice: 0.50
+    part_map: 0.80
+    part_map_dice: 0.35
+  visual_evidence:
+    redness: 0.25
+    shape: 0.45
+    lesion: 0.55
+    dice: 0.25
+    lesion_dice: 0.35
+    union: 0.12
+    unaffected_surface: 0.55
+    unaffected_surface_dice: 0.35
+  candidate:
+    q: 0.70
+    initial: 0.15
+    signed: 0.30
+    gated: 0.25
+    corrected: 0.90
+    prototype_classification: 0.40
+    prototype_alignment: 0.12
+    part_conditioned: 0.45
+    foreground: 0.35
+    class_seed_positive: 0.25
+    foreground_dice: 0.25
+    unaffected_surface_inhibition: 0.20
+    class_seed_unaffected_surface: 0.12
+    body_lesion_unaffected_surface: 0.20
+    body_lesion_budget: 0.12
+    body_lesion_budget_weight: 0.10
+    symptom_foreground_fish_region_budget: 0.18
+    symptom_foreground_fish_region_budget_weight: 0.08
+    caudal_necrosis_region_budget: 0.62
+    caudal_necrosis_region_budget_weight: 0.16
+  route:
+    routed_semantic: 0.75
+    assignment: 0.35
+    part_consistency: 0.25
+    spatial_support: 0.55
+    spatial_support_dice: 0.25
+    interpretation: 0.65
+    preservation: 0.025
+    delta_sparsity: 0.010
+    consistency: 0.030
+    spatial_support_closure: 0.020
+    spatial_support_unaffected_surface: 0.040
+    preservation_confidence_softness: 0.70
+    interpretation_unaffected_surface: 0.10
+    spatial_support_closure_kernel: 5
+  auxiliary:
+    q: 0.70
+    semantic_mask: 0.45
+    semantic_mask_dice: 0.35
+    native_semantic_contribution: 0.35
+    final_refinement: 0.40
+    signed_distance: 0.35
+    signed_distance_temperature: 4.0
+    foreground_dice: 0.25
+    curvature: 0.05
+    total_variation: 0.025
+    bilateral: 0.025
+  stage_multipliers:
+    part_structure_information_formation:
+      fish_region: 1.00
+      part_map: 1.00
+      visual_evidence: 0.00
+      unaffected_surface: 0.00
+      part_conditioned: 0.00
+      candidate: 0.00
+      prototype: 0.00
+      semantic: 0.00
+      foreground: 0.00
+      final_refinement: 0.00
+      suppression: 0.00
+    visual_evidence_formation:
+      fish_region: 0.05
+      part_map: 0.05
+      visual_evidence: 1.00
+      unaffected_surface: 1.00
+      part_conditioned: 0.35
+      candidate: 0.00
+      prototype: 0.00
+      semantic: 0.00
+      foreground: 0.10
+      final_refinement: 0.00
+      suppression: 0.05
+    part_route_preparation:
+      fish_region: 0.00
+      part_map: 0.00
+      visual_evidence: 0.00
+      unaffected_surface: 0.15
+      part_conditioned: 0.35
+      candidate: 0.25
+      prototype: 1.00
+      semantic: 0.15
+      foreground: 0.20
+      final_refinement: 0.00
+      suppression: 0.10
+    candidate_and_route_interpretation:
+      fish_region: 0.00
+      part_map: 0.00
+      visual_evidence: 0.00
+      unaffected_surface: 0.10
+      part_conditioned: 0.90
+      candidate: 1.00
+      prototype: 0.85
+      semantic: 0.45
+      foreground: 0.55
+      final_refinement: 0.10
+      suppression: 0.40
+    semantic_output_refinement:
+      fish_region: 0.00
+      part_map: 0.00
+      visual_evidence: 0.00
+      unaffected_surface: 0.10
+      part_conditioned: 0.45
+      candidate: 0.35
+      prototype: 0.35
+      semantic: 0.50
+      foreground: 0.35
+      final_refinement: 1.00
+      suppression: 0.30
+    joint_fine_tuning:
+      fish_region: 0.00
+      part_map: 0.00
+      visual_evidence: 0.00
+      unaffected_surface: 0.15
+      part_conditioned: 0.80
+      candidate: 0.85
+      prototype: 0.60
+      semantic: 0.65
+      foreground: 0.55
+      final_refinement: 0.45
+      suppression: 0.45
+
+training:
+  batch_size: 8
+  optimizer:
+    type: adamw
+    learning_rate: 3.0e-4
+    weight_decay: 1.0e-4
+    betas: [0.9, 0.999]
+    epsilon: 1.0e-8
+    include_frozen_parameters: true
+    encoder_lr_scale: 0.25
+  scheduler:
+    enabled: true
+    step_per_batch: true
+    minimum_learning_rate_ratio: 0.10
+  runtime:
+    automatic_mixed_precision: true
+    strict_frozen_eval: false
+    gradient_clip_norm: 1.0
+    gradient_accumulation_steps: 1
+    skip_nonfinite_loss: true
+    validate_every_epochs: 1
+    save_best_checkpoints: false
+  stages:
+    - name: part_structure_information_formation
+      epochs: [1, 25]
+      peak_learning_rate: 3.0e-4
+      warmup_epochs: 2.0
+    - name: visual_evidence_formation
+      epochs: [26, 50]
+      peak_learning_rate: 3.0e-4
+      warmup_epochs: 1.0
+    - name: part_route_preparation
+      epochs: [51, 60]
+      peak_learning_rate: 2.5e-4
+      warmup_epochs: 1.0
+    - name: candidate_and_route_interpretation
+      epochs: [61, 85]
+      peak_learning_rate: 2.0e-4
+      warmup_epochs: 1.0
+    - name: semantic_output_refinement
+      epochs: [86, 100]
+      peak_learning_rate: 2.0e-4
+      warmup_epochs: 1.0
+      group_multipliers:
+        route_assignment: 0.50
+        spatial_support: 0.50
+        route_interpretation_heads: 0.50
+        route_wise_composer: 0.50
+    - name: joint_fine_tuning
+      epochs: [101, 120]
+      peak_learning_rate: 7.5e-5
+      warmup_epochs: 0.5
+
+evaluation:
+  candidate_protocol: configs/evaluation/candidate_evaluation.yaml
